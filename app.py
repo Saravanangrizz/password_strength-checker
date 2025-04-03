@@ -1,57 +1,63 @@
-from flask import Flask, request, render_template
-import re
-import secrets
-import math
-import string
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-def check_password_strength(password):
-    length = len(password)
-    has_upper = bool(re.search(r"[A-Z]", password))
-    has_lower = bool(re.search(r"[a-z]", password))
-    has_digit = bool(re.search(r"[0-9]", password))
-    has_special = bool(re.search(r"[@#$%^&*!]", password))
+# List of common weak passwords
+COMMON_PASSWORDS = {"password", "123456", "qwerty", "letmein", "password123"}
 
-    entropy = calculate_entropy(password)
+def check_password_strength(password, username, platform):
+    strength = 0
+    message = ""
 
-    if length >= 12 and has_upper and has_lower and has_digit and has_special:
-        strength = "Strong"
-    elif length >= 8 and (has_upper or has_lower) and (has_digit or has_special):
-        strength = "Medium"
-    else:
-        strength = "Weak"
+    # Convert to lowercase for case-insensitive checks
+    username = username.lower()
+    password_lower = password.lower()
 
-    return strength, entropy
+    # Check if password contains the username (Weak)
+    if username and username in password_lower:
+        return {"strength": 0, "message": "❌ Password should not contain your username!"}
 
-def calculate_entropy(password):
-    charset = 0
-    if any(c in string.ascii_lowercase for c in password):
-        charset += 26
-    if any(c in string.ascii_uppercase for c in password):
-        charset += 26
-    if any(c in string.digits for c in password):
-        charset += 10
-    if any(c in string.punctuation for c in password):
-        charset += 32
+    # Check against common weak passwords
+    if password_lower in COMMON_PASSWORDS:
+        return {"strength": 0, "message": "❌ This is a very common and weak password!"}
 
-    entropy = len(password) * math.log2(charset) if charset else 0
-    return round(entropy, 2)
+    # Basic password checks
+    if len(password) > 8:
+        strength += 1
+    if any(c.islower() for c in password) and any(c.isupper() for c in password):
+        strength += 1
+    if any(c.isdigit() for c in password):
+        strength += 1
+    if any(c in "!@#$%^&*()-_+=" for c in password):  # Special character check
+        strength += 1
 
-def generate_password():
-    characters = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(secrets.choice(characters) for _ in range(16))
+    # Platform-based security requirements
+    if platform == "banking":
+        if len(password) >= 12 and any(c in "!@#$%^&*()-_+=" for c in password):
+            strength += 1  # Extra strength for secure banking
+        else:
+            message = "⚠️ For banking, use at least 12 characters with special symbols!"
+            strength -= 1
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    strength, entropy, generated_password = "", "", ""
-    if request.method == "POST":
-        password = request.form.get("password")
-        if password:
-            strength, entropy = check_password_strength(password)
-        if "generate" in request.form:
-            generated_password = generate_password()
-    return render_template("index.html", strength=strength, entropy=entropy, generated_password=generated_password)
+    # Strength labels
+    strength_labels = ["Weak", "Moderate", "Strong", "Very Strong"]
+    strength = max(0, min(strength, 3))  # Keep within range (0-3)
 
-if __name__ == "__main__":
+    return {"strength": strength, "message": message or strength_labels[strength]}
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/check-password', methods=['POST'])
+def check_password():
+    data = request.json
+    password = data.get("password", "")
+    username = data.get("username", "")
+    platform = data.get("platform", "general")
+
+    result = check_password_strength(password, username, platform)
+    return jsonify(result)
+
+if __name__ == '__main__':
     app.run(debug=True)
