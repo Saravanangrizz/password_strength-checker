@@ -1,15 +1,24 @@
 body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    margin: 50px;
+    background-color: #f4f4f4;
+    font-family: 'Arial', sans-serif;
 }
+
+h2 {
+    font-weight: bold;
+    color: #333;
+}
+
 input {
-    padding: 10px;
-    margin: 10px;
+    border-radius: 8px;
 }
-button {
-    padding: 10px;
-    background-color: blue;
-    color: white;
-    border: none;
+
+.progress {
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    width: 0%;
+    transition: width 0.5s ease-in-out;
 }
