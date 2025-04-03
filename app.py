@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify
 app = Flask(__name__)
 
 # List of common weak passwords
-COMMON_PASSWORDS = {"password", "123456", "qwerty", "letmein", "password123"}
+COMMON_PASSWORDS = {"password", "123456789", "qwerty", "letmein", "password123","987654321"}
 
 def check_password_strength(password, username, platform):
     strength = 0
