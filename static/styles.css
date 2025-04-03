@@ -8,7 +8,7 @@ h2 {
     color: #333;
 }
 
-input {
+input, select {
     border-radius: 8px;
 }
 
