@@ -10,6 +10,19 @@
 
     <div class="container">
         <h1>Password Strength Checker</h1>
+
+        <label for="username">Enter Username:</label>
+        <input type="text" id="username" placeholder="Type your username...">
+
+        <label for="platform">Select Platform Type:</label>
+        <select id="platform">
+            <option value="social">Social Media</option>
+            <option value="banking">Banking</option>
+            <option value="work">Work</option>
+            <option value="gaming">Gaming</option>
+            <option value="general">General</option>
+        </select>
+
         <label for="password">Enter Password:</label>
         <input type="password" id="password" placeholder="Type your password..." onkeyup="checkPassword()">
         
