@@ -3,12 +3,13 @@ from flask_cors import CORS
 import re
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for security
+CORS(app)  # Enable CORS
 
-def check_strength(password):
+def check_strength(password, username, platform):
     strength = 0
     suggestions = []
 
+    # Basic strength checks
     if len(password) >= 8:
         strength += 1
     else:
@@ -34,8 +35,20 @@ def check_strength(password):
     else:
         suggestions.append("Use special characters like @, !, or &.")
 
-    levels = ["Weak", "Fair", "Good", "Strong", "Very Strong"]
-    return {"strength": levels[strength-1] if strength > 0 else "Very Weak", "suggestions": suggestions}
+    # Check if password contains the username
+    if username.lower() in password.lower():
+        strength -= 1
+        suggestions.append("Avoid using your username in the password.")
+
+    # Platform-specific recommendations
+    if platform.lower() in ["banking", "work", "government"]:
+        if strength < 4:
+            suggestions.append("For secure platforms, use at least 12 characters and mix symbols, numbers, and letters.")
+
+    levels = ["Very Weak", "Weak", "Fair", "Good", "Strong", "Very Strong"]
+    strength = max(0, min(strength, len(levels) - 1))  # Keep strength in valid range
+    
+    return {"strength": levels[strength], "suggestions": suggestions}
 
 @app.route('/')
 def home():
@@ -45,8 +58,10 @@ def home():
 def check_password():
     data = request.json
     password = data.get("password", "")
-    
-    result = check_strength(password)
+    username = data.get("username", "")
+    platform = data.get("platform", "")
+
+    result = check_strength(password, username, platform)
     return jsonify(result)
 
 if __name__ == "__main__":
