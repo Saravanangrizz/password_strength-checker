@@ -1,24 +1,56 @@
 body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
     background-color: #f4f4f4;
-    font-family: 'Arial', sans-serif;
+    margin: 0;
 }
 
-h2 {
-    font-weight: bold;
-    color: #333;
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 300px;
 }
 
-input, select {
-    border-radius: 8px;
+input {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
 .progress {
+    width: 100%;
     height: 10px;
+    background: #ddd;
     border-radius: 5px;
-    overflow: hidden;
+    margin-top: 5px;
 }
 
-.progress-bar {
+#strength-bar {
+    height: 100%;
     width: 0%;
-    transition: width 0.5s ease-in-out;
+    border-radius: 5px;
+    transition: width 0.3s;
+}
+
+#strength-text {
+    font-weight: bold;
+}
+
+#suggestions {
+    color: #d9534f;
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        width: 90%;
+    }
 }
