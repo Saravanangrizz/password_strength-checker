@@ -1,39 +1,35 @@
-document.addEventListener("DOMContentLoaded", function() {
-    let passwordField = document.getElementById('password');
-    let usernameField = document.getElementById('username');
-    let platformField = document.getElementById('platform');
-    let strengthBar = document.getElementById('strength-bar');
-    let strengthText = document.getElementById('strength-text');
+function checkPassword() {
+    let password = document.getElementById("password").value;
+    let strengthBar = document.getElementById("strength-bar");
+    let strengthText = document.getElementById("strength-text");
+    let suggestionsBox = document.getElementById("suggestions");
+    
+    let strength = 0;
+    
+    if (password.length >= 8) strength++;  
+    if (/[A-Z]/.test(password)) strength++;  
+    if (/[a-z]/.test(password)) strength++;  
+    if (/[0-9]/.test(password)) strength++;  
+    if (/[@$!%*?&]/.test(password)) strength++;  
 
-    function checkPasswordStrength() {
-        let password = passwordField.value;
-        let username = usernameField.value;
-        let platform = platformField.value;
-        
-        fetch('/check-password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password, username, platform })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                let strengthColors = ["bg-danger", "bg-warning", "bg-info", "bg-success"];
-                
-                strengthBar.style.width = (data.strength * 25) + "%";
-                strengthBar.className = "progress-bar " + strengthColors[data.strength];
-                strengthText.innerText = data.message;
-            } else {
-                strengthText.innerText = "⚠️ Error: No response from server!";
-            }
-        })
-        .catch(error => {
-            console.error("Error fetching strength:", error);
-            strengthText.innerText = "⚠️ Error checking password!";
-        });
-    }
+    let strengthLevels = ["Weak", "Fair", "Good", "Strong", "Very Strong"];
+    let colors = ["red", "orange", "yellow", "blue", "green"];
 
-    passwordField.addEventListener('input', checkPasswordStrength);
-    usernameField.addEventListener('input', checkPasswordStrength);
-    platformField.addEventListener('change', checkPasswordStrength);
-});
+    strengthBar.style.width = (strength * 20) + "%";
+    strengthBar.style.background = colors[strength - 1] || "red";
+    strengthText.textContent = "Strength: " + (strengthLevels[strength - 1] || "Weak");
+
+    suggestImprovements(password);
+}
+
+function suggestImprovements(password) {
+    let suggestions = [];
+    
+    if (password.length < 8) suggestions.push("Make it at least 8 characters long.");
+    if (!/[A-Z]/.test(password)) suggestions.push("Add an uppercase letter.");
+    if (!/[a-z]/.test(password)) suggestions.push("Add a lowercase letter.");
+    if (!/[0-9]/.test(password)) suggestions.push("Include a number.");
+    if (!/[@$!%*?&]/.test(password)) suggestions.push("Use special characters like @, !, or &.");
+
+    document.getElementById("suggestions").innerHTML = suggestions.length ? "Suggestions: " + suggestions.join(" ") : "";
+}
