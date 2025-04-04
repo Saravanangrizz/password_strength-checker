@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 # List of common weak passwords
 COMMON_PASSWORDS = {"password", "123456789", "qwerty", "letmein", "password123","987654321"}
