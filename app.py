@@ -7,43 +7,42 @@ COMMON_PASSWORDS = {"password", "123456789", "qwerty", "letmein", "password123",
 
 def check_password_strength(password, username, platform):
     strength = 0
-    message = ""
+    message = "Weak"
 
-    # Convert to lowercase for case-insensitive checks
     username = username.lower()
     password_lower = password.lower()
 
-    # Check if password contains the username (Weak)
+    # Username check
     if username and username in password_lower:
         return {"strength": 0, "message": "❌ Password should not contain your username!"}
 
-    # Check against common weak passwords
+    # Common weak passwords
     if password_lower in COMMON_PASSWORDS:
-        return {"strength": 0, "message": "❌ This is a very common and weak password!"}
+        return {"strength": 0, "message": "❌ This password is too common!"}
 
-    # Basic password checks
+    # Strength logic
     if len(password) > 8:
         strength += 1
     if any(c.islower() for c in password) and any(c.isupper() for c in password):
         strength += 1
     if any(c.isdigit() for c in password):
         strength += 1
-    if any(c in "!@#$%^&*()-_+=" for c in password):  # Special character check
+    if any(c in "!@#$%^&*()-_+=" for c in password):
         strength += 1
 
-    # Platform-based security requirements
+    # Platform-specific rules
     if platform == "banking":
         if len(password) >= 12 and any(c in "!@#$%^&*()-_+=" for c in password):
-            strength += 1  # Extra strength for secure banking
+            strength += 1
         else:
-            message = "⚠️ For banking, use at least 12 characters with special symbols!"
+            message = "⚠️ For banking, use at least 12 characters and special symbols!"
             strength -= 1
 
     # Strength labels
     strength_labels = ["Weak", "Moderate", "Strong", "Very Strong"]
-    strength = max(0, min(strength, 3))  # Keep within range (0-3)
+    strength = max(0, min(strength, 3))  
 
-    return {"strength": strength, "message": message or strength_labels[strength]}
+    return {"strength": strength, "message": message if message != "Weak" else strength_labels[strength]}
 
 @app.route('/')
 def home():
