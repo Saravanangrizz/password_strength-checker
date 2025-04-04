@@ -1,62 +1,53 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
+import re
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__)
+CORS(app)  # Enable CORS for security
 
-# List of common weak passwords
-COMMON_PASSWORDS = {"password", "123456789", "qwerty", "letmein", "password123","987654321"}
-
-def check_password_strength(password, username, platform):
+def check_strength(password):
     strength = 0
-    message = "Weak"
+    suggestions = []
 
-    username = username.lower()
-    password_lower = password.lower()
-
-    # Username check
-    if username and username in password_lower:
-        return {"strength": 0, "message": "❌ Password should not contain your username!"}
-
-    # Common weak passwords
-    if password_lower in COMMON_PASSWORDS:
-        return {"strength": 0, "message": "❌ This password is too common!"}
-
-    # Strength logic
-    if len(password) > 8:
+    if len(password) >= 8:
         strength += 1
-    if any(c.islower() for c in password) and any(c.isupper() for c in password):
+    else:
+        suggestions.append("Make it at least 8 characters long.")
+    
+    if re.search(r'[A-Z]', password):
         strength += 1
-    if any(c.isdigit() for c in password):
+    else:
+        suggestions.append("Add an uppercase letter.")
+    
+    if re.search(r'[a-z]', password):
         strength += 1
-    if any(c in "!@#$%^&*()-_+=" for c in password):
+    else:
+        suggestions.append("Add a lowercase letter.")
+    
+    if re.search(r'[0-9]', password):
         strength += 1
+    else:
+        suggestions.append("Include a number.")
+    
+    if re.search(r'[@$!%*?&]', password):
+        strength += 1
+    else:
+        suggestions.append("Use special characters like @, !, or &.")
 
-    # Platform-specific rules
-    if platform == "banking":
-        if len(password) >= 12 and any(c in "!@#$%^&*()-_+=" for c in password):
-            strength += 1
-        else:
-            message = "⚠️ For banking, use at least 12 characters and special symbols!"
-            strength -= 1
-
-    # Strength labels
-    strength_labels = ["Weak", "Moderate", "Strong", "Very Strong"]
-    strength = max(0, min(strength, 3))  
-
-    return {"strength": strength, "message": message if message != "Weak" else strength_labels[strength]}
+    levels = ["Weak", "Fair", "Good", "Strong", "Very Strong"]
+    return {"strength": levels[strength-1] if strength > 0 else "Very Weak", "suggestions": suggestions}
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template("index.html")
 
 @app.route('/check-password', methods=['POST'])
 def check_password():
     data = request.json
     password = data.get("password", "")
-    username = data.get("username", "")
-    platform = data.get("platform", "general")
-
-    result = check_password_strength(password, username, platform)
+    
+    result = check_strength(password)
     return jsonify(result)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
